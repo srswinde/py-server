@@ -7,5 +7,5 @@ setup(name='server',
       description='Python Distribution Utilities',
       author='Scott Swindell',
       author_email='scottswindell@email.arizona.edu',
-	  py_modules = ['server'],
+	  py_modules = ['server', 'scottSock'],
      )
