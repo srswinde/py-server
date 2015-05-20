@@ -116,6 +116,9 @@ class Server:
                
 					c = self.handler( self.server.accept() ) 
 					self.threads.append( c )
+					self.threads = [ thread for thread in self.threads if thread.is_alive() ]
+
+
 					if self.killSwitch:
 						c.setKill( self.killLock, self.killSwitch )
 					c.start()
