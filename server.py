@@ -27,7 +27,7 @@ class Client( threading.Thread ):
 				
 				
 				if self.handle( data ) == 0:
-					print "closing"
+					
 					self.client.close()
 					running = 0
 				
@@ -35,7 +35,6 @@ class Client( threading.Thread ):
 				
              	
 			else:
-				print "closing"
 				self.client.close()
 				running = 0
 				
