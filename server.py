@@ -92,15 +92,16 @@ class Server:
 				sys.exit( 1 )
 
 		
-		
+	def test(self):
+		print "TESTING"
 	def run( self ):
 		self.open_socket()
 		
 		
-		input = [self.server, sys.stdin ]
-		
+		input = [self.server ]
+	
 		while self.running:
-			
+
 			if self.killSwitch and self.killLock.locked():
 				self.running = 0
 			
