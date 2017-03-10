@@ -2,12 +2,15 @@
 
 import socket
 import sys
+import select
+import time
 
 class scottSock( socket.socket ):
-	def __init__( self, HOST, PORT, timeout=1.0 ):
+	def __init__( self, HOST, PORT, timeout=None ):
 		socket.socket.__init__( self, socket.AF_INET, socket.SOCK_STREAM )
 		
-		self.settimeout(timeout)
+		
+		#self.settimeout(timeout)
 		HOST = socket.gethostbyname(HOST)
 		#print HOST, int( PORT )
 		self.connect( ( HOST, int( PORT ) ) )
@@ -21,7 +24,9 @@ class scottSock( socket.socket ):
 		resp = ""
 		while test:	
 			try:
-				newStuff = self.recv( 100 )
+				ready = select.select([self], [], [], 1.0)
+				if ready[0]:	
+					newStuff = self.recv( 100 )
 			except socket.timeout:
 				return resp
 				
