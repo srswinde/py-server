@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 import psutil
+import signal
 
 #Class to parse input from socket and send output
 #opened by Server class
@@ -18,9 +19,9 @@ class Client( threading.Thread ):
 		self.killWord = None		
 
 	def run(self):
-		running = 1
+		self.running = 1
 		
-		while running:
+		while self.running:
 			data = self.client.recv(self.size)
 		
 			if data:
@@ -29,17 +30,23 @@ class Client( threading.Thread ):
 				if self.handle( data ) == 0:
 					
 					self.client.close()
-					running = 0
+					self.running = 0
 				
 				
 				
              	
 			else:
 				self.client.close()
-				running = 0
+				self.running = 0
 				
 			
-				
+	def close(self):
+		try:
+			self.client.close()
+		except Exception:
+			pass
+		self.running = 0
+
 	def handle( self, data ):
 		print " Packet ( {data} ) recieved from {ADDR} ".format(data=data.strip(), ADDR=self.address )
 		if self.killWord and self.killWord == data.strip():
@@ -54,6 +61,24 @@ class Client( threading.Thread ):
 	def setKill( self, lock, word ):
 		self.killLock = lock
 		self.killWord = word
+
+class Client_keepopen( Client ):
+
+	def run(self):
+		running =1
+		print "socket recvd"
+		while running:
+			data = self.client.recv( self.size )
+			if data:
+				self.handle(data)
+			else:
+				self.client.close()
+				running=False
+
+		
+	
+	def get_soc(self):
+		return self.client
 
 class Server:
 	""" Class to listen for requests or commands
@@ -70,7 +95,7 @@ class Server:
 		self.server = None
 		self.threads = []
 		self.handler = handler
-		self.running = True
+		self.running = False
 		self.killSwitch = killSwitch
 		self.tryagain = tryagain
 		if killSwitch:
@@ -128,6 +153,8 @@ class Server:
 			print
 			resp = self.open_socket()
 			
+			if resp == 10:
+				print resp
 			if resp != 0:
 				print "didn't work check to see who is using this socket."
 				return 
@@ -135,7 +162,7 @@ class Server:
 				print "Success"
 				
 		input = [self.server ]
-	
+		self.running = True
 		while self.running:
 
 			if self.killSwitch and self.killLock.locked():
@@ -149,15 +176,19 @@ class Server:
 				
 				if s == self.server:
                     # handle the server socket
-               
+               				
 					c = self.handler( self.server.accept() ) 
 					self.threads.append( c )
-					self.threads = [ thread for thread in self.threads if thread.is_alive() ]
+					
+					#self.threads = [ thread for thread in self.threads if thread.is_alive() ]
 
 
 					if self.killSwitch:
 						c.setKill( self.killLock, self.killSwitch )
 					c.start()
+					for thr in self.threads:
+						if not thr.is_alive():
+							thr.join()
 					
         # close all threads
 
@@ -173,16 +204,32 @@ class Server:
 	def kill( self ):
 		self.running = 0
 		
+
+	def get_threads( self ):
+		return self.threads
+
+def start_server_thread( port=4452, handler=Client_keepopen ):
+	serv = Server( port, handler=handler  )
+	server_thread = threading.Thread(target=serv.run )
+	return serv, server_thread
 		
+
+def find_net_conn(port=4452):
+	for conn in psutil.net_connections( ):
+		if conn.laddr[-1] == port:
+			return conn
+
 if __name__ == "__main__":
 	usage = "usage: server.py [portnum]  \n Like: server.py 6543"
-
 	if len(sys.argv) != 2:
 		print usage
 	else:
 		try:
-			s=Server( int(sys.argv[1]), tryagain=True )
-			s.run()
+			s=Server( int(sys.argv[1]), handler=Client_keepopen, tryagain=True )
+			
+			st = threading.thread( target=s.run )
+			st.start()
+
 		except NameError:
 			print usage
 			
