@@ -19,20 +19,26 @@ class scottSock( socket.socket ):
 		#print "Sending message:", message
 		self.send( message )
 
-	def listen( self ):
+	def listen( self, endchar='\n' ):
 		test = True
 		resp = ""
 		while test:	
 			try:
+				
 				ready = select.select([self], [], [], 1.0)
-				if ready[0]:	
-					newStuff = self.recv( 100 )
+				if ready[0]:
+					
+					newStuff = self.recv( 1024 )
+				else: newStuff=""
 			except socket.timeout:
 				return resp
-				
+			
 			
 			if newStuff:
 				resp+=newStuff
+				if endchar:
+					if resp.endswith('\n'):
+						return resp
 			else:
 				return resp
 		
