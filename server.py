@@ -180,7 +180,8 @@ class Server:
 					c = self.handler( self.server.accept() ) 
 					self.threads.append( c )
 					
-					#self.threads = [ thread for thread in self.threads if thread.is_alive() ]
+					#Clean out the stopped threads!
+					self.threads = [ thread for thread in self.threads if thread.is_alive() ]
 
 
 					if self.killSwitch:
