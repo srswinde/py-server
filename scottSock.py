@@ -22,13 +22,14 @@ class scottSock( socket.socket ):
 	def listen( self, endchar='\n' ):
 		test = True
 		resp = ""
+		timeout=1.0
 		while test:	
 			try:
 				
-				ready = select.select([self], [], [], 1.0)
+				ready = select.select([self], [], [], timeout)
 				if ready[0]:
 					
-					newStuff = self.recv( 1024 )
+					newStuff = self.recv( 128 )
 				else: newStuff=""
 			except socket.timeout:
 				return resp
@@ -36,15 +37,16 @@ class scottSock( socket.socket ):
 			
 			if newStuff:
 				resp+=newStuff
-				if endchar:
-					if resp.endswith('\n'):
-						return resp
+				#if endchar:
+					#if resp.endswith('\n'):
+						#return resp
 			else:
 				return resp
+			timeout=0.01
 		
-	def converse( self, message ):
+	def converse( self, message, endchar='\n' ):
 		self.talk( message )
-		return self.listen( )
+		return self.listen( endchar=endchar )
 	
 
 if __name__ == "__main__":
