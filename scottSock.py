@@ -21,7 +21,7 @@ class scottSock( socket.socket ):
 
 	def listen( self, endchar='\n' ):
 		test = True
-		resp = ""
+		resp = b""
 		timeout=0.1
 		while test:	
 			try:
