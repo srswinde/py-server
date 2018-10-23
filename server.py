@@ -11,7 +11,8 @@ import signal
 #Class to parse input from socket and send output
 #opened by Server class
 class Client( threading.Thread ):
-	def __init__( self, (client, address)  ):
+	def __init__( self, cli_addr  ):
+		client,address = cli_addr
 		threading.Thread.__init__(self)
 		self.client = client
 		self.address = address
@@ -48,7 +49,7 @@ class Client( threading.Thread ):
 		self.running = 0
 
 	def handle( self, data ):
-		print " Packet ( {data} ) recieved from {ADDR} ".format(data=data.strip(), ADDR=self.address )
+		print(" Packet ( {data} ) recieved from {ADDR} ".format(data=data.strip(), ADDR=self.address ))
 		if self.killWord and self.killWord == data.strip():
 			self.killLock.acquire()
 			self.client.send("DIEING\n")
@@ -66,7 +67,7 @@ class Client_keepopen( Client ):
 
 	def run(self):
 		running =1
-		print "socket recvd"
+		print("socket recvd")
 		while running:
 			data = self.client.recv( self.size )
 			if data:
@@ -117,16 +118,16 @@ class Server:
 			if self.server:
 
 				self.server.close()
-				print "Could not open socket: " + err.strerror
+				print("Could not open socket: " + err.strerror)
 
 				t0 = time.time()
 				if err.errno == 98 and self.tryagain:
 
-					print "checking for lost socket..."
+					print("checking for lost socket...")
 					for conn in psutil.net_connections():
 						if conn.laddr[1] == self.port:
 
-							print "Found socket {}".format(conn)
+							print("Found socket {}".format(conn))
 							if conn.pid:
 								psutil.Process(conn.pid).kill()
 								return 10
@@ -136,30 +137,30 @@ class Server:
 
 			return -1
 	def test(self):
-		print "TESTING"
+		print("TESTING")
 
 	def run( self ):
 		resp = self.open_socket()
 		if resp < 0:
 			return
 		elif resp > 0:
-			print "Process is trying to use this address, giving them {}s to close".format(resp)
+			print("Process is trying to use this address, giving them {}s to close".format(resp))
 			t0 = time.time()
 			while ( time.time() - t0 ) < resp:
 				sys.stdout.write( str(int(time.time()-t0)) )
 				sys.stdout.flush()
 				time.sleep(0.5)
 				sys.stdout.write('\r')
-			print
+			print()
 			resp = self.open_socket()
 
 			if resp == 10:
-				print resp
+				print(resp)
 			if resp != 0:
-				print "didn't work check to see who is using this socket."
+				print("didn't work check to see who is using this socket.")
 				return
 			else:
-				print "Success"
+				print("Success")
 
 		input = [self.server ]
 		self.running = True
@@ -223,7 +224,7 @@ def find_net_conn(port=4452):
 if __name__ == "__main__":
 	usage = "usage: server.py [portnum]  \n Like: server.py 6543"
 	if len(sys.argv) != 2:
-		print usage
+		print (usage)
 	else:
 		try:
 			s=Server( int(sys.argv[1]), handler=Client_keepopen, tryagain=True )
@@ -232,7 +233,7 @@ if __name__ == "__main__":
 			st.start()
 
 		except NameError:
-			print usage
+			print (usage)
 
 
 

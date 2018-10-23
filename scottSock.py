@@ -53,6 +53,6 @@ if __name__ == "__main__":
 	
 	if len( sys.argv ) > 3:
 		soc = scottSock( sys.argv[1], sys.argv[2] )
-		print soc.talk( sys.argv[3] )
+		print(soc.talk( sys.argv[3] ))
 		
 		
